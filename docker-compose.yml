@@ -1,0 +1,43 @@
+name: restart_http-server
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: restart_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE_NAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres/var/lib/postgresql/data:/var/lib/postgresql/data
+    networks:
+      - restart_http-server-network
+
+  restart-http-server:
+    image: restart_http-server
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: restart_http-server
+    environment:
+      MAIL_SERVER_HOST: ${MAIL_SERVER_HOST}
+      MAIL_SERVER_PASSWORD: ${MAIL_SERVER_PASSWORD}
+      MAIL_SERVER_PORT: ${MAIL_SERVER_PORT}
+      MAIL_SERVER_USERNAME: ${MAIL_SERVER_USERNAME}
+      POSTGRES_DATABASE_NAME: ${POSTGRES_DATABASE_NAME}
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER}
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    networks:
+      - restart_http-server-network
+
+networks:
+  restart_http-server-network:
+    driver: bridge

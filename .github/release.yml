@@ -1,0 +1,14 @@
+changelog:
+  categories:
+    - title: 🚀 Features
+      labels:
+        - FEATURE
+    - title: 🐛 Bug Fixes
+      labels:
+        - FIX
+    - title: 🛡️ Security
+      labels:
+        - SECURITY
+    - title: 📑 Documentation
+      labels:
+        - DOCS
