@@ -6,21 +6,21 @@ Hyper-Text Transfer Protocol (HTTP) server for FusionFall: ReStart.
 
 - **Java -** Version 17
 - **Database engine -** PostgreSQL 17.x
-  - **Environment variables:**
+- **Environment variables:**
 
-      | Variable                 | Type    | Description                           | Required | Default                 | Example                      |
-      |--------------------------|---------|---------------------------------------|----------|-------------------------|------------------------------|
-      | `MAIL_SERVER_HOST`       | String  | Host address of the mail server       | No       | `smtp.gmail.com`        | `smtp.example.com`           |
-      | `MAIL_SERVER_PASSWORD`   | String  | Password of the mail server           | Yes      | None                    | `<Mail Server Password>`     |
-      | `MAIL_SERVER_PORT`       | Integer | Port of the mail server               | No       | `587`                   | `465`                        |
-      | `MAIL_SERVER_USERNAME`   | String  | Username of the mail server           | Yes      | None                    | `<Mail Server Username>`     |
-      | `PORT`                   | Integer | Port where the server will be running | No       | `8080`                  | `8443`                       |
-      | `POSTGRES_DATABASE_NAME` | String  | Name of the PostgreSQL database       | Yes      | None                    | `<PostgreSQL Database Name>` |
-      | `POSTGRES_HOST`          | String  | Host address of the PostgreSQL server | Yes      | None                    | `localhost`                  |
-      | `POSTGRES_PASSWORD`      | String  | Password of the PostgreSQL user       | Yes      | None                    | `<PostgreSQL Password>`      |
-      | `POSTGRES_PORT`          | Integer | Port of the PostgreSQL server         | Yes      | None                    | `5432`                       |
-      | `POSTGRES_USER`          | String  | Username of the PostgreSQL user       | Yes      | None                    | `<PostgreSQL Username>`      |
-      | `PUBLIC_ADDRESS`         | String  | Public address of the server          | No       | `http://localhost:8080` | `https://example.com`        |
+    | Variable                 | Type    | Description                           | Required | Default                  | Example                      |
+    |--------------------------|---------|---------------------------------------|----------|--------------------------|------------------------------|
+    | `MAIL_SERVER_HOST`       | String  | Host address of the mail server       | No       | `smtp.gmail.com`         | `smtp.example.com`           |
+    | `MAIL_SERVER_PASSWORD`   | String  | Password of the mail server           | Yes      | None                     | `<Mail Server Password>`     |
+    | `MAIL_SERVER_PORT`       | Integer | Port of the mail server               | No       | `587`                    | `465`                        |
+    | `MAIL_SERVER_USERNAME`   | String  | Username of the mail server           | Yes      | None                     | `<Mail Server Username>`     |
+    | `PORT`                   | Integer | Port where the server will be running | No       | `8080`                   | `8443`                       |
+    | `POSTGRES_DATABASE_NAME` | String  | Name of the PostgreSQL database       | Yes      | None                     | `<PostgreSQL Database Name>` |
+    | `POSTGRES_HOST`          | String  | Host address of the PostgreSQL server | Yes      | None                     | `localhost`                  |
+    | `POSTGRES_PASSWORD`      | String  | Password of the PostgreSQL user       | Yes      | None                     | `<PostgreSQL Password>`      |
+    | `POSTGRES_PORT`          | Integer | Port of the PostgreSQL server         | Yes      | None                     | `5432`                       |
+    | `POSTGRES_USER`          | String  | Username of the PostgreSQL user       | Yes      | None                     | `<PostgreSQL Username>`      |
+    | `PUBLIC_ADDRESS`         | String  | Public address of the server          | No       | `http://localhost:$PORT` | `https://example.com`        |
 
 ## Configuration
 
@@ -37,6 +37,39 @@ you can pass the necessary JVM arguments to the application
 by passing each argument following the `-D` flag when running the application.
 
 Note that you can also use a reverse proxy (e.g. Nginx, Apache, etc.).
+
+### Application Properties
+
+You can also configure some parts from the logic of the application
+by setting application properties custom values
+by passing them as JVM arguments when running the application.
+
+- **Windows**
+
+    ```shell
+    # Development
+    > java -jar .\target\restart-http-server-<version number>.jar \
+        -D<property name>=<property value>
+
+    # Production
+    > java -jar .\restart-http-server-<version number>.jar \
+        -D<property name>=<property value>
+    ```
+
+- **MacOS/Linux**
+
+    ```shell
+    # Development
+    $ java -jar ./target/restart-http-server-<version number>.jar \
+        -D<property name>=<property value>
+
+    # Production
+    $ java -jar ./restart-http-server-<version number>.jar \
+        -D<property name>=<property value>
+    ```
+
+You can see the list of customizable properties
+in the [Application Properties page from the Wiki](https://github.com/Juansecu/ReStart-HTTP-Server/wiki/Application-Properties).
 
 ## API Documentation
 

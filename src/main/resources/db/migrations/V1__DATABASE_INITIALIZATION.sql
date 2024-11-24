@@ -1,0 +1,36 @@
+CREATE COLLATION IF NOT EXISTS CASE_INSENSITIVE (
+    provider = icu,
+    locale = 'und-u-ks-level2',
+    deterministic = false
+);
+
+CREATE DOMAIN UNSIGNED_INT AS INT
+    CHECK (VALUE >= 0 AND VALUE <= 2147483647);
+
+CREATE OR REPLACE FUNCTION Update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF row(NEW.*) IS DISTINCT FROM row(OLD.*) THEN
+        NEW.Updated_at = CURRENT_TIMESTAMP;
+        RETURN NEW;
+    ELSE
+        RETURN OLD;
+    END IF;
+END;
+$$ language 'plpgsql';
+
+CREATE TABLE IF NOT EXISTS Users (
+    User_id UNSIGNED_INT PRIMARY KEY,
+    Email VARCHAR(50) NOT NULL UNIQUE COLLATE CASE_INSENSITIVE,
+    Username VARCHAR(12) NOT NULL UNIQUE COLLATE CASE_INSENSITIVE,
+    Password VARCHAR(60) NOT NULL,
+    Birthdate DATE NOT NULL,
+    Registered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Last_logged_in_at TIMESTAMP,
+    Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER Update_Users_Updated_at
+BEFORE UPDATE ON Users
+FOR EACH ROW
+EXECUTE FUNCTION Update_updated_at_column();
