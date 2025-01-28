@@ -11,14 +11,20 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.juansecu.restart.auth.enums.ERegisterError;
+import com.juansecu.restart.auth.enums.ERole;
+import com.juansecu.restart.auth.events.UserRegisterEvent;
 import com.juansecu.restart.auth.models.dtos.requests.RegisterReqDto;
 import com.juansecu.restart.auth.models.dtos.responses.RegisterResDto;
+import com.juansecu.restart.auth.models.entities.RoleEntity;
+import com.juansecu.restart.auth.repositories.IRolesRepository;
 import com.juansecu.restart.users.models.entities.UserEntity;
 import com.juansecu.restart.users.repositories.IUsersRepository;
 
@@ -30,7 +36,9 @@ public class AuthenticationApiService {
     @Value("${authentication.minimum-user-age}")
     private int minimumUserAge;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
     private final PasswordEncoder passwordEncoder;
+    private final IRolesRepository rolesRepository;
     private final IUsersRepository usersRepository;
 
     public ResponseEntity<RegisterResDto> register(final RegisterReqDto registerReqDto) {
@@ -109,12 +117,56 @@ public class AuthenticationApiService {
             registerReqDto.getUsername()
         );
 
+        this.applicationEventPublisher.publishEvent(
+            new UserRegisterEvent(newUser)
+        );
+
         response.setSuccessful(true);
         response.setMessage("User " + registerReqDto.getUsername() + " registered successfully");
 
         return new ResponseEntity<>(
             response,
             HttpStatus.CREATED
+        );
+    }
+
+    public void setUserAsVerified(final UserEntity user) {
+        RoleEntity userRole;
+        List<RoleEntity> userRoles;
+
+        userRole = this.rolesRepository
+            .findByNameIgnoreCase(ERole.USER.getRole())
+            .orElseThrow(
+                () -> new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "User role not found"
+                )
+            );
+        userRoles = user.getRoles();
+
+        if (userRoles.contains(userRole)) {
+            AuthenticationApiService.CONSOLE_LOGGER.info(
+                "{}'s user account is already verified...",
+                user.getUsername()
+            );
+
+            return;
+        }
+
+        AuthenticationApiService.CONSOLE_LOGGER.info(
+            "Setting {}'s user account as verified...",
+            user.getUsername()
+        );
+
+        userRoles.add(userRole);
+
+        user.setRoles(userRoles);
+
+        this.usersRepository.save(user);
+
+        AuthenticationApiService.CONSOLE_LOGGER.info(
+            "{}'s user account has been verified successfully...",
+            user.getUsername()
         );
     }
 }

@@ -1,0 +1,43 @@
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/fonts/inter.ttf') format('truetype');
+}
+
+:root {
+    --alert-container-background-color: #373737;
+    --alert-error-background-color: #4C1D1D;
+    --alert-error-icon-color: #FF7D7D;
+    --alert-success-background-color: #1D4C27;
+    --alert-success-icon-color: #7DFF8A;
+    --body-background-color: #1E1E1E;
+    --button-border-radius: 15px;
+    --dexlabs-color: #30C1FE;
+    --dexlabs-dark-color: #095088;
+}
+
+body {
+    font-family: Inter, sans-serif;
+    color: white;
+    background-color: var(--body-background-color);
+}
+
+button {
+    border: none;
+    border-radius: var(--button-border-radius);
+    cursor: pointer;
+    padding: 1.2rem 2rem;
+    color: white;
+    font-size: .9rem;
+    font-weight: bold;
+    transition: background-color .3s ease;
+}
+
+.button--secondary {
+    background-color: var(--dexlabs-color);
+}
+
+.button--secondary:hover {
+    background-color: var(--dexlabs-dark-color);
+}

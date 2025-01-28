@@ -8,19 +8,43 @@ Hyper-Text Transfer Protocol (HTTP) server for FusionFall: ReStart.
 - **Database engine -** PostgreSQL 17.x
 - **Environment variables:**
 
-    | Variable                 | Type    | Description                           | Required | Default                  | Example                      |
-    |--------------------------|---------|---------------------------------------|----------|--------------------------|------------------------------|
-    | `MAIL_SERVER_HOST`       | String  | Host address of the mail server       | No       | `smtp.gmail.com`         | `smtp.example.com`           |
-    | `MAIL_SERVER_PASSWORD`   | String  | Password of the mail server           | Yes      | None                     | `<Mail Server Password>`     |
-    | `MAIL_SERVER_PORT`       | Integer | Port of the mail server               | No       | `587`                    | `465`                        |
-    | `MAIL_SERVER_USERNAME`   | String  | Username of the mail server           | Yes      | None                     | `<Mail Server Username>`     |
-    | `PORT`                   | Integer | Port where the server will be running | No       | `8080`                   | `8443`                       |
-    | `POSTGRES_DATABASE_NAME` | String  | Name of the PostgreSQL database       | Yes      | None                     | `<PostgreSQL Database Name>` |
-    | `POSTGRES_HOST`          | String  | Host address of the PostgreSQL server | Yes      | None                     | `localhost`                  |
-    | `POSTGRES_PASSWORD`      | String  | Password of the PostgreSQL user       | Yes      | None                     | `<PostgreSQL Password>`      |
-    | `POSTGRES_PORT`          | Integer | Port of the PostgreSQL server         | Yes      | None                     | `5432`                       |
-    | `POSTGRES_USER`          | String  | Username of the PostgreSQL user       | Yes      | None                     | `<PostgreSQL Username>`      |
-    | `PUBLIC_ADDRESS`         | String  | Public address of the server          | No       | `http://localhost:$PORT` | `https://example.com`        |
+    | Variable                                         | Type    | Description                                                             | Required | Default                  | Example                      |
+    |--------------------------------------------------|---------|-------------------------------------------------------------------------|----------|--------------------------|------------------------------|
+    | `ISSUER_ACCOUNT_RELATED_NAME`                    | String  | Name related to the account from which the emails will be sent          | No       | `$ISSUER_NAME`           | `Example User`               |
+    | `ISSUER_NAME`                                    | String  | Name of the issuer of the emails                                        | Yes      | None                     | `FusionFall: ReStart`        |
+    | `ISSUER_SUPPORT_ADDRESS`                         | String  | Email or link address for support related to the issuer of the emails   | Yes      | None                     | `support@example.com`        |
+    | `JWT_SECRET`                                     | String  | Secret key for signing and verifying JSON Web Tokens (JWTs)             | Yes      | None                     | `<JWT Secret>`               |
+    | `MAIL_SERVER_FROM_ACCOUNT_RELATED_EMAIL_ADDRESS` | String  | Email address related to the account from which the emails will be sent | No       | `$MAIL_SERVER_USERNAME`  | `example-user@gmail.com`     |
+    | `MAIL_SERVER_HOST`                               | String  | Host address of the mail server                                         | No       | `smtp.gmail.com`         | `smtp.example.com`           |
+    | `MAIL_SERVER_PASSWORD`                           | String  | Password of the mail server                                             | Yes      | None                     | `<Mail Server Password>`     |
+    | `MAIL_SERVER_PORT`                               | Integer | Port of the mail server                                                 | No       | `587`                    | `465`                        |
+    | `MAIL_SERVER_USERNAME`                           | String  | Username of the mail server                                             | Yes      | None                     | `<Mail Server Username>`     |
+    | `PORT`                                           | Integer | Port where the server will be running                                   | No       | `8080`                   | `8443`                       |
+    | `POSTGRES_DATABASE_NAME`                         | String  | Name of the PostgreSQL database                                         | Yes      | None                     | `<PostgreSQL Database Name>` |
+    | `POSTGRES_HOST`                                  | String  | Host address of the PostgreSQL server                                   | Yes      | None                     | `localhost`                  |
+    | `POSTGRES_PASSWORD`                              | String  | Password of the PostgreSQL user                                         | Yes      | None                     | `<PostgreSQL Password>`      |
+    | `POSTGRES_PORT`                                  | Integer | Port of the PostgreSQL server                                           | Yes      | None                     | `5432`                       |
+    | `POSTGRES_USER`                                  | String  | Username of the PostgreSQL user                                         | Yes      | None                     | `<PostgreSQL Username>`      |
+    | `PUBLIC_ADDRESS`                                 | String  | Public address of the server                                            | No       | `http://localhost:$PORT` | `https://example.com`        |
+    | `VERIFICATION_TOKENS_SALT_KEY`                   | String  | Salt key for generating verification tokens                             | Yes      | None                     | `<Salt Key>`                 |
+    | `VERIFICATION_TOKENS_SECURITY_KEY`               | String  | Security key for generating verification tokens                         | Yes      | None                     | `<Security Key>`             |
+
+    <br>
+    
+    **Notes:**
+    - All required environment variables must be set before running the application.
+    - Never give environment variable values to non-administrator users,
+      since they could hack your server instance.
+    - You can generate secrets using tools,
+      such as [Vondy](https://www.vondy.com/random-key-generator--ZzGGMYgS),
+      or [Random Key Gen](https://randomkeygen.com/).
+      256-bit keys are recommended.
+    - For setting the `PUBLIC_ADDRESS` environment variable,
+      you can use your domain name or your public IP address.
+    - For setting up the `MAIL_SERVER_*` environment variables,
+      check out the SMTP Server setup section.
+    - Salt and security keys must be 256-bit keys, must be different from each other,
+      and must be in hexadecimal format.
 
 ## Configuration
 

@@ -1,12 +1,35 @@
+-- BEGINNING OF COLLATION DEFINITIONS
 CREATE COLLATION IF NOT EXISTS CASE_INSENSITIVE (
     provider = icu,
     locale = 'und-u-ks-level2',
     deterministic = false
 );
+-- END OF COLLATION DEFINITIONS
 
+
+
+-- BEGINNING OF DOMAIN AND TYPE DEFINITIONS
 CREATE DOMAIN UNSIGNED_INT AS INT
     CHECK (VALUE >= 0 AND VALUE <= 2147483647);
 
+CREATE DOMAIN UNSIGNED_SMALLINT AS SMALLINT
+    CHECK (VALUE >= 0 AND VALUE <= 32767);
+
+CREATE DOMAIN UPPERCASE_AUTHORIZATION_NAME AS VARCHAR(30)
+    CONSTRAINT uctext_uppercase CHECK (UPPER(VALUE) = VALUE)
+    CONSTRAINT uctext_not_emtpy CHECK (LENGTH(VALUE) > 0);
+
+CREATE TYPE VERIFICATION_TOKEN_TYPE AS ENUM (
+    'DELETE_ACCOUNT_TOKEN',
+    'EMAIL_VERIFICATION_TOKEN',
+    'RESET_PASSWORD_TOKEN',
+    'UPDATE_EMAIL_TOKEN'
+);
+-- END OF DOMAIN AND TYPE DEFINITIONS
+
+
+
+-- BEGINNING OF FUNCTION DEFINITIONS
 CREATE OR REPLACE FUNCTION Update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -17,20 +40,215 @@ BEGIN
         RETURN OLD;
     END IF;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE 'plpgsql';
+-- END OF FUNCTION DEFINITIONS
 
+
+
+-- BEGINNING OF TABLE CREATION
 CREATE TABLE IF NOT EXISTS Users (
-    User_id UNSIGNED_INT PRIMARY KEY,
+    User_id UNSIGNED_INT PRIMARY KEY NOT NULL,
     Email VARCHAR(50) NOT NULL UNIQUE COLLATE CASE_INSENSITIVE,
     Username VARCHAR(12) NOT NULL UNIQUE COLLATE CASE_INSENSITIVE,
     Password VARCHAR(60) NOT NULL,
     Birthdate DATE NOT NULL,
     Registered_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     Last_logged_in_at TIMESTAMP,
+    Last_updated_email_at TIMESTAMP,
+    Deleted_at TIMESTAMP,
     Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TRIGGER Update_Users_Updated_at
+CREATE TABLE IF NOT EXISTS Permissions (
+    Permission_id SERIAL PRIMARY KEY NOT NULL,
+    Name UPPERCASE_AUTHORIZATION_NAME NOT NULL UNIQUE,
+    Description VARCHAR(100) NOT NULL UNIQUE,
+    Added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Added_by UNSIGNED_INT,
+    Updated_by UNSIGNED_INT,
+    Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (Added_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Updated_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Roles (
+    Role_id SERIAL PRIMARY KEY NOT NULL,
+    Name UPPERCASE_AUTHORIZATION_NAME NOT NULL UNIQUE,
+    Description VARCHAR(100) NOT NULL UNIQUE,
+    Added_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Added_by UNSIGNED_INT,
+    Updated_by UNSIGNED_INT,
+    Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (Added_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Updated_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Role_permissions (
+    Role_id INT NOT NULL,
+    Permission_id INT NOT NULL,
+    Assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Initial_assigned_by UNSIGNED_INT,
+    Last_assigned_by UNSIGNED_INT,
+    Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (Role_id, Permission_id),
+    FOREIGN KEY (Role_id)
+    REFERENCES Roles (Role_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Permission_id)
+    REFERENCES Permissions (Permission_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Initial_assigned_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Last_assigned_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS User_permissions (
+    User_id UNSIGNED_INT NOT NULL,
+    Permission_id INT NOT NULL,
+    Assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Initial_assigned_by UNSIGNED_INT,
+    Last_assigned_by UNSIGNED_INT,
+    Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (User_id, Permission_id),
+    FOREIGN KEY (User_id)
+    REFERENCES Users (User_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Permission_id)
+    REFERENCES Permissions (Permission_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Initial_assigned_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Last_assigned_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS User_roles (
+    User_id UNSIGNED_INT NOT NULL,
+    Role_id INT NOT NULL,
+    Assigned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Initial_assigned_by UNSIGNED_INT,
+    Last_assigned_by UNSIGNED_INT,
+    Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (User_id, Role_id),
+    FOREIGN KEY (User_id)
+    REFERENCES Users (User_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Role_id)
+    REFERENCES Roles (Role_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Initial_assigned_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Last_assigned_by)
+    REFERENCES Users (User_id)
+    ON DELETE NO ACTION
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS Verification_tokens (
+    Verification_token_id SERIAL PRIMARY KEY NOT NULL,
+    Token UUID NOT NULL,
+    Type VERIFICATION_TOKEN_TYPE NOT NULL,
+    Uses_count UNSIGNED_SMALLINT NOT NULL DEFAULT 0,
+    User_id UNSIGNED_INT NOT NULL,
+    Referenced_token_id UNSIGNED_INT,
+    Created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    Expires_at TIMESTAMP NOT NULL,
+    Updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (Type, User_id),
+    FOREIGN KEY (User_id)
+    REFERENCES Users (User_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+    FOREIGN KEY (Referenced_token_id)
+    REFERENCES Verification_tokens (Verification_token_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+-- END OF TABLE CREATION
+
+
+
+-- BEGINNING OF TRIGGER DEFINITIONS
+CREATE OR REPLACE TRIGGER Update_Users_Updated_at_column_on_update
 BEFORE UPDATE ON Users
 FOR EACH ROW
 EXECUTE FUNCTION Update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER Update_Permissions_Updated_at_column_on_update
+BEFORE UPDATE ON Permissions
+FOR EACH ROW
+EXECUTE FUNCTION Update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER Update_Roles_Updated_at_column_on_update
+BEFORE UPDATE ON Roles
+FOR EACH ROW
+EXECUTE FUNCTION Update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER Update_Role_permissions_Updated_at_column_on_update
+BEFORE UPDATE ON Role_permissions
+FOR EACH ROW
+EXECUTE FUNCTION Update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER Update_User_permissions_Updated_at_column_on_update
+BEFORE UPDATE ON User_permissions
+FOR EACH ROW
+EXECUTE FUNCTION Update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER Update_User_roles_Updated_at_column_on_update
+BEFORE UPDATE ON User_roles
+FOR EACH ROW
+EXECUTE FUNCTION Update_updated_at_column();
+
+CREATE OR REPLACE TRIGGER Update_Verification_tokens_Updated_at_column_on_update
+BEFORE UPDATE ON Verification_tokens
+FOR EACH ROW
+EXECUTE FUNCTION Update_updated_at_column();
+-- END OF TRIGGER DEFINITIONS
+
+
+
+-- BEGINNING OF INSERTION OF DEFAULT DATA
+INSERT INTO Permissions (Permission_id, Name, Description)
+VALUES
+    (1, 'APPROVE_CUSTOM_NAME', 'Permission to approve custom character names');
+
+INSERT INTO Roles (Role_id, Name, Description)
+VALUES
+    (1, 'ADMIN', 'Administrator role'),
+    (2, 'MODERATOR', 'Moderator role'),
+    (3, 'USER', 'User role');
+
+INSERT INTO Role_permissions (Role_id, Permission_id)
+VALUES
+    (1, 1),
+    (2, 1);
+-- END OF INSERTION OF DEFAULT DATA
