@@ -129,10 +129,14 @@ public class VerificationTokenFinderFilter extends OncePerRequestFilter {
             return;
         }
 
-        request.setAttribute(UsersConstants.USER_REQUEST_ATTRIBUTE, user);
+        request.setAttribute(UsersConstants.USER_REQUEST_ATTRIBUTE, user.get());
+        request.setAttribute(
+            VerificationTokensConstants.IS_VALID_TOKEN_REQUEST_ATTRIBUTE,
+            true
+        );
         request.setAttribute(
             VerificationTokensConstants.VERIFICATION_TOKEN_REQUEST_ATTRIBUTE,
-            verificationToken
+            verificationToken.get()
         );
 
         filterChain.doFilter(request, response);

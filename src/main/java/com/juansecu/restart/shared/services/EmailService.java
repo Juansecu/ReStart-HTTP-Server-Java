@@ -59,15 +59,14 @@ public class EmailService {
             return true;
         } catch (MailSendException mailSendException) {
             EmailService.CONSOLE_LOGGER.error(
-                "There was an error while trying to send e-mail:\n{}",
+                "There was an error while trying to send e-mail: {}",
                 mailSendException.getMessage()
             );
         } catch (MessagingException messagingException) {
             EmailService.CONSOLE_LOGGER.error(
-                "There was an error while trying to set e-mail parameters:\n{}",
+                "There was an error while trying to set e-mail parameters: {}",
                 messagingException.getMessage()
             );
-
         }
 
         return false;

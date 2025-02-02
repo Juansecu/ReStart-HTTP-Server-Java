@@ -16,7 +16,7 @@ import com.juansecu.restart.users.models.entities.UserEntity;
 @Setter
 public class RoleEntity {
     @Column(name = "Role_id")
-    @GeneratedValue(strategy = jakarta.persistence.GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Integer roleId;
     @Column(length = 30, name = "Name", nullable = false, unique = true)

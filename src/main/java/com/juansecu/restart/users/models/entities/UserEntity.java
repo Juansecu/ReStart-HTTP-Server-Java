@@ -70,9 +70,9 @@ public class UserEntity implements UserDetails {
             CascadeType.PERSIST,
             CascadeType.REFRESH
         },
-        fetch = FetchType.LAZY
+        fetch = FetchType.EAGER
     )
-    private transient List<PermissionEntity> permissions;
+    private List<PermissionEntity> permissions;
     @JoinTable(
         inverseJoinColumns = @JoinColumn(
             name = "Role_id",
@@ -91,7 +91,7 @@ public class UserEntity implements UserDetails {
             CascadeType.PERSIST,
             CascadeType.REFRESH
         },
-        fetch = FetchType.LAZY
+        fetch = FetchType.EAGER
     )
     private List<RoleEntity> roles;
 

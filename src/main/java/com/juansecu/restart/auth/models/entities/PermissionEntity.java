@@ -16,7 +16,7 @@ import com.juansecu.restart.users.models.entities.UserEntity;
 @Setter
 public class PermissionEntity {
     @Column(name = "Permission_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Integer permissionId;
     @Column(length = 30, name = "Name", nullable = false, unique = true)

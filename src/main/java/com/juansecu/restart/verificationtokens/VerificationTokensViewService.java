@@ -54,9 +54,38 @@ public class VerificationTokensViewService {
             return AuthenticationConstants.EMAIL_VERIFICATION_TEMPLATE;
         }
 
-
         final VerificationTokenEntity verificationToken = (VerificationTokenEntity) request.getAttribute(
             VerificationTokensConstants.VERIFICATION_TOKEN_REQUEST_ATTRIBUTE
+        );
+
+        if (
+            verificationTokenType == EVerificationTokenType.EMAIL_VERIFICATION_TOKEN &&
+            (
+                verificationToken.getUsesCount() > VerificationTokensConstants.EMAIL_VERIFICATION_TOKEN_MAXIMUM_USES ||
+                verificationToken.getUser().getAuthorities().contains(
+                    new SimpleGrantedAuthority(ERole.USER.getRole())
+                )
+            )
+        ) {
+            model.addAttribute(
+                VerificationTokensConstants.HAS_TOKEN_EXPIRED_VIEW_ATTRIBUTE,
+                false
+            );
+            model.addAttribute(
+                VerificationTokensConstants.IS_ALREADY_USED_TOKEN_VIEW_ATTRIBUTE,
+                true
+            );
+            model.addAttribute(
+                VerificationTokensConstants.IS_SUCCESSFUL_VIEW_ATTRIBUTE,
+                false
+            );
+
+            return AuthenticationConstants.EMAIL_VERIFICATION_TEMPLATE;
+        }
+
+        model.addAttribute(
+            VerificationTokensConstants.IS_ALREADY_USED_TOKEN_VIEW_ATTRIBUTE,
+            false
         );
 
         if (
@@ -79,6 +108,11 @@ public class VerificationTokensViewService {
 
             return AuthenticationConstants.EMAIL_VERIFICATION_TEMPLATE;
         }
+
+        model.addAttribute(
+            VerificationTokensConstants.HAS_TOKEN_EXPIRED_VIEW_ATTRIBUTE,
+            false
+        );
 
         VerificationTokensViewService.CONSOLE_LOGGER.info(
             "Verification token validated successfully. Updating uses count..."
@@ -120,34 +154,18 @@ public class VerificationTokensViewService {
         final VerificationTokenEntity verificationToken,
         final Model model
     ) {
-        if (
-            verificationToken.getUsesCount() >= VerificationTokensConstants.EMAIL_VERIFICATION_TOKEN_MAXIMUM_USES ||
-            verificationToken.getUser().getAuthorities().contains(
-                new SimpleGrantedAuthority(ERole.USER.getRole())
-            )
-        ) {
-            model.addAttribute(
-                VerificationTokensConstants.IS_ALREADY_USED_TOKEN_VIEW_ATTRIBUTE,
-                true
-            );
-            model.addAttribute(
-                VerificationTokensConstants.IS_SUCCESSFUL_VIEW_ATTRIBUTE,
-                false
-            );
-        } else {
-            this.authenticationApiService.setUserAsVerified(
-                verificationToken.getUser()
-            );
+        this.authenticationApiService.setUserAsVerified(
+            verificationToken.getUser()
+        );
 
-            model.addAttribute(
-                VerificationTokensConstants.IS_ALREADY_USED_TOKEN_VIEW_ATTRIBUTE,
-                false
-            );
-            model.addAttribute(
-                VerificationTokensConstants.IS_SUCCESSFUL_VIEW_ATTRIBUTE,
-                true
-            );
-        }
+        model.addAttribute(
+            VerificationTokensConstants.IS_ALREADY_USED_TOKEN_VIEW_ATTRIBUTE,
+            false
+        );
+        model.addAttribute(
+            VerificationTokensConstants.IS_SUCCESSFUL_VIEW_ATTRIBUTE,
+            true
+        );
 
         return AuthenticationConstants.EMAIL_VERIFICATION_TEMPLATE;
     }

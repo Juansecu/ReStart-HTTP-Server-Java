@@ -7,7 +7,7 @@ import com.juansecu.restart.users.models.entities.UserEntity;
 
 @Getter
 public class UserRegisterEvent extends ApplicationEvent {
-    private final transient UserEntity user;
+    private final UserEntity user;
 
     public UserRegisterEvent(final UserEntity user) {
         super(user);

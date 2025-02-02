@@ -121,6 +121,8 @@ public class AuthenticationApiService {
             new UserRegisterEvent(newUser)
         );
 
+        response.setErrorCode(null);
+        response.setErrors(null);
         response.setSuccessful(true);
         response.setMessage("User " + registerReqDto.getUsername() + " registered successfully");
 

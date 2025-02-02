@@ -43,6 +43,9 @@ Hyper-Text Transfer Protocol (HTTP) server for FusionFall: ReStart.
       you can use your domain name or your public IP address.
     - For setting up the `MAIL_SERVER_*` environment variables,
       check out the SMTP Server setup section.
+    - If the value of the environment variable `MAIL_SERVER_USERNAME`
+      is not an email address, then `MAIL_SERVER_FROM_*_EMAIL_ADDRESS`-like
+      environment variables must be set.
     - Salt and security keys must be 256-bit keys, must be different from each other,
       and must be in hexadecimal format.
 

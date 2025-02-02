@@ -12,7 +12,7 @@
         <link rel="shortcut icon" href="/favicon.ico" />
 
         <title
-            th:text="${#messages.msg('email.verification.page.title') + ' | ' + #messages.msg('issuer.name')}"
+            th:text="${#messages.msg('email.verification.page.title') + ' | ' + @environment.getProperty('issuer.name')}"
         ></title>
 
         <link type="text/css" rel="stylesheet" href="/css/main.css" />
@@ -33,6 +33,32 @@
             <section id="alertContainer" class="alert-container">
                 <div
                     role="alert"
+                    th:if="${isAlreadyUsedToken}"
+                    class="alert alert--warning"
+                >
+                    <section>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            class="alert__icon"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M8 14.5a6.5 6.5 0 1 0 0-13a6.5 6.5 0 0 0 0 13ZM8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16Zm1-5a1 1 0 1 1-2 0a1 1 0 0 1 2 0Zm-.25-6.25a.75.75 0 0 0-1.5 0v3.5a.75.75 0 0 0 1.5 0v-3.5Z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                    </section>
+
+                    <section>
+                        <h2 th:text="#{email.verification.confirmation-alert.warning.account-already-verified.title}"></h2>
+                        <span th:text="#{email.verification.confirmation-alert.warning.account-already-verified.message}"></span>
+                    </section>
+                </div>
+
+                <div
+                    role="alert"
+                    th:unless="${isAlreadyUsedToken}"
                     th:class="${isSuccessful ? 'alert alert--success' : 'alert alert--error'}"
                 >
                     <section>
@@ -81,12 +107,7 @@
                         ></span>
 
                         <span
-                            th:if="${!isSuccessful && isAlreadyUsedToken}"
-                            th:text="#{email.verification.confirmation-alert.error.account-already-verified}"
-                        ></span>
-
-                        <span
-                            th:unless="${hasTokenExpired && !isAlreadyUsedToken}"
+                            th:if="${!hasTokenExpired}"
                             th:text="${isSuccessful ? #messages.msg('email.verification.confirmation-alert.success.message') : #messages.msg('verification-token.invalid')}"
                         ></span>
                     </section>

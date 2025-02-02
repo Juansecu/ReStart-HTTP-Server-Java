@@ -23,6 +23,7 @@
 .alert > section:last-child {
     flex-direction: column;
     align-items: start;
+    width: 75%;
 }
 
 .alert--error {
@@ -49,6 +50,18 @@
     fill: var(--alert-success-icon-color);
 }
 
+.alert--warning {
+    background-color: var(--alert-warning-background-color);
+}
+
+.alert--warning h2 {
+    color: var(--alert-warning-icon-color);
+}
+
+.alert--warning .alert__icon {
+    fill: var(--alert-warning-icon-color);
+}
+
 .alert__icon {
     width: 100%;
 }
@@ -62,7 +75,25 @@
 }
 
 @media (min-width: 768px) {
+    .alert > section:first-child {
+        width: 35%;
+    }
+
+    .alert > section:last-child {
+        width: 65%;
+    }
+
     .alert-container {
         width: 40%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .alert > section:first-child {
+        width: 25%;
+    }
+
+    .alert > section:last-child {
+        width: calc(100% - calc(25% - 22rem));
     }
 }
