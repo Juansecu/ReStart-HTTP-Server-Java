@@ -5,6 +5,7 @@ public class AuthenticationConstants {
     public static final String EMAIL_VERIFICATION_TEMPLATE = "auth/email-verification";
     public static final String IS_USER_AUTHENTICATED_REQUEST_ATTRIBUTE = "isUserAuthenticated";
     public static final int MINUTES_OF_VALID_AUTHENTICATION_TOKEN = 30;
+    public static final String VERIFICATION_EMAIL_SENDING_SUCCESSFUL_MESSAGE = "Verification email sent successfully";
 
     private AuthenticationConstants() {}
 }

@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.juansecu.restart.auth.models.dtos.requests.RegisterReqDto;
+import com.juansecu.restart.auth.models.dtos.requests.ResendVerificationEmailReqDto;
 import com.juansecu.restart.auth.models.dtos.responses.RegisterResDto;
+import com.juansecu.restart.auth.models.dtos.responses.ResendVerificationEmailResDto;
 
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -42,5 +44,36 @@ public class AuthApiController {
         final RegisterReqDto registerReqDto
     ) {
         return this.authenticationApiService.register(registerReqDto);
+    }
+
+    @ApiResponse(
+        description = "The verification email has been sent successfully",
+        responseCode = "201"
+    )
+    @ApiResponse(
+        description = "Invalid data provided",
+        responseCode = "400"
+    )
+    @ApiResponse(
+        description = "The user account does not exist",
+        responseCode = "404"
+    )
+    @ApiResponse(
+        description = "The user has reached the limit of resend verification email trials",
+        responseCode = "429"
+    )
+    @Operation(
+        description = "Resend the verification email.",
+        summary = "Resend the verification email"
+    )
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<ResendVerificationEmailResDto> resendVerificationEmail(
+        @RequestBody
+        @Valid
+        final ResendVerificationEmailReqDto resendVerificationEmailReqDto
+    ) {
+        return this.authenticationApiService.resendVerificationEmail(
+            resendVerificationEmailReqDto.getUserId()
+        );
     }
 }

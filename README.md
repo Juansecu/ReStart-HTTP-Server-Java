@@ -26,6 +26,10 @@ Hyper-Text Transfer Protocol (HTTP) server for FusionFall: ReStart.
     | `POSTGRES_PORT`                                  | Integer | Port of the PostgreSQL server                                           | Yes      | None                     | `5432`                       |
     | `POSTGRES_USER`                                  | String  | Username of the PostgreSQL user                                         | Yes      | None                     | `<PostgreSQL Username>`      |
     | `PUBLIC_ADDRESS`                                 | String  | Public address of the server                                            | No       | `http://localhost:$PORT` | `https://example.com`        |
+    | `REDIS_HOST`                                     | String  | Host address of the Redis server                                        | Yes      | None                     | `localhost`                  |
+    | `REDIS_PASSWORD`                                 | String  | Password of the Redis server                                            | Yes      | None                     | `<Redis Password>`           |
+    | `REDIS_PORT`                                     | Integer | Port of the Redis server                                                | Yes      | None                     | `6379`                       |
+    | `REDIS_USERNAME`                                 | String  | Username of the Redis server                                            | Yes      | None                     | `<Redis Username>`           |
     | `VERIFICATION_TOKENS_SALT_KEY`                   | String  | Salt key for generating verification tokens                             | Yes      | None                     | `<Salt Key>`                 |
     | `VERIFICATION_TOKENS_SECURITY_KEY`               | String  | Security key for generating verification tokens                         | Yes      | None                     | `<Security Key>`             |
 

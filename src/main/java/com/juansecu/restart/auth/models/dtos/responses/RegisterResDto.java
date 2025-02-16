@@ -8,11 +8,13 @@ import lombok.NoArgsConstructor;
 
 import com.juansecu.restart.auth.enums.ERegisterError;
 import com.juansecu.restart.shared.models.dtos.responses.BasicResDto;
+import com.juansecu.restart.users.models.dtos.responses.UserIdResDto;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class RegisterResDto extends BasicResDto {
+    private UserIdResDto data;
     private ERegisterError errorCode;
 
     public RegisterResDto(
@@ -20,7 +22,7 @@ public class RegisterResDto extends BasicResDto {
         final ERegisterError errorCode,
         final List<String> errors,
         final String message,
-        final Object data
+        final UserIdResDto data
     ) {
         super(
             isSuccessful,
