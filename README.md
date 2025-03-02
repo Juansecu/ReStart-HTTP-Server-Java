@@ -29,6 +29,7 @@ Hyper-Text Transfer Protocol (HTTP) server for FusionFall: ReStart.
     | `REDIS_HOST`                                     | String  | Host address of the Redis server                                        | Yes      | None                     | `localhost`                  |
     | `REDIS_PASSWORD`                                 | String  | Password of the Redis server                                            | Yes      | None                     | `<Redis Password>`           |
     | `REDIS_PORT`                                     | Integer | Port of the Redis server                                                | Yes      | None                     | `6379`                       |
+    | `REDIS_SSL`                                      | Boolean | Whether to use SSL for the Redis connection                             | No       | `false`                  | `true`                       |
     | `REDIS_USERNAME`                                 | String  | Username of the Redis server                                            | Yes      | None                     | `<Redis Username>`           |
     | `VERIFICATION_TOKENS_SALT_KEY`                   | String  | Salt key for generating verification tokens                             | Yes      | None                     | `<Salt Key>`                 |
     | `VERIFICATION_TOKENS_SECURITY_KEY`               | String  | Security key for generating verification tokens                         | Yes      | None                     | `<Security Key>`             |
