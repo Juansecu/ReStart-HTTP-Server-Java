@@ -169,6 +169,24 @@ public class AuthenticationApiService {
             return response;
         }
 
+        if (user.get().isVerified()) {
+            AuthenticationApiService.CONSOLE_LOGGER.info(
+                "{}'s user account is already verified...",
+                user.get().getUsername()
+            );
+
+            return new ResponseEntity<>(
+                new ResendVerificationEmailResDto(
+                    false,
+                    EResendVerificationEmailError.USER_ALREADY_VERIFIED,
+                    null,
+                    "User account is already verified",
+                    null
+                ),
+                HttpStatus.CONFLICT
+            );
+        }
+
         resendVerificationEmailTrial = this.resendVerificationEmailTrialsRepository.findById(userId);
 
         if (resendVerificationEmailTrial.isPresent())

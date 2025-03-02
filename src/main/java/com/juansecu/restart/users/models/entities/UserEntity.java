@@ -123,6 +123,12 @@ public class UserEntity implements UserDetails {
         return authorities;
     }
 
+    public boolean hasAuthority(final String authority) {
+        return this.getAuthorities().contains(
+            new SimpleGrantedAuthority(authority)
+        );
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -140,9 +146,10 @@ public class UserEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return this.deletedAt == null &&
-            this.getAuthorities().contains(
-                new SimpleGrantedAuthority(ERole.USER.getRole())
-            );
+        return this.deletedAt == null && this.isVerified();
+    }
+
+    public boolean isVerified() {
+        return this.hasAuthority(ERole.USER.getRole());
     }
 }

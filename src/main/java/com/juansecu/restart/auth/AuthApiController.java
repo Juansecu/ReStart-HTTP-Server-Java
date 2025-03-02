@@ -2,6 +2,7 @@ package com.juansecu.restart.auth;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,10 @@ import com.juansecu.restart.auth.models.dtos.requests.ResendVerificationEmailReq
 import com.juansecu.restart.auth.models.dtos.responses.RegisterResDto;
 import com.juansecu.restart.auth.models.dtos.responses.ResendVerificationEmailResDto;
 
+@Tag(
+    description = "Authentication operations",
+    name = "Auth"
+)
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @RestController
@@ -57,6 +62,10 @@ public class AuthApiController {
     @ApiResponse(
         description = "The user account does not exist",
         responseCode = "404"
+    )
+    @ApiResponse(
+        description = "The user account has already been verified",
+        responseCode = "409"
     )
     @ApiResponse(
         description = "The user has reached the limit of resend verification email trials",
