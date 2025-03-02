@@ -34,6 +34,9 @@ import com.juansecu.restart.auth.repositories.IRolesRepository;
 import com.juansecu.restart.users.models.dtos.responses.UserIdResDto;
 import com.juansecu.restart.users.models.entities.UserEntity;
 import com.juansecu.restart.users.repositories.IUsersRepository;
+import com.juansecu.restart.verificationtokens.VerificationTokensApiService;
+import com.juansecu.restart.verificationtokens.enums.EVerificationTokenType;
+import com.juansecu.restart.verificationtokens.models.entities.VerificationTokenEntity;
 
 @RequiredArgsConstructor
 @Service
@@ -50,6 +53,7 @@ public class AuthenticationApiService {
     private final IResendVerificationEmailTrialsRepository resendVerificationEmailTrialsRepository;
     private final IRolesRepository rolesRepository;
     private final IUsersRepository usersRepository;
+    private final VerificationTokensApiService verificationTokensService;
 
     public ResponseEntity<RegisterResDto> register(final RegisterReqDto registerReqDto) {
         UserEntity newUser;
@@ -155,6 +159,7 @@ public class AuthenticationApiService {
             HttpStatus.NOT_FOUND
         );
         Optional<ResendVerificationEmailTrial> resendVerificationEmailTrial;
+        Optional<VerificationTokenEntity> verificationToken;
 
         final Calendar today = Calendar.getInstance();
         final Optional<UserEntity> user = this.usersRepository.findById(userId);
@@ -186,6 +191,15 @@ public class AuthenticationApiService {
                 HttpStatus.CONFLICT
             );
         }
+
+        verificationToken = this.verificationTokensService.getVerificationToken(
+            EVerificationTokenType.EMAIL_VERIFICATION_TOKEN,
+            user.get()
+        );
+
+        verificationToken.ifPresent(
+            this.verificationTokensService::deleteVerificationToken
+        );
 
         resendVerificationEmailTrial = this.resendVerificationEmailTrialsRepository.findById(userId);
 

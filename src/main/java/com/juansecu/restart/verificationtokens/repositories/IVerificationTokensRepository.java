@@ -15,4 +15,9 @@ public interface IVerificationTokensRepository extends CrudRepository<Verificati
         EVerificationTokenType type,
         UserEntity user
     );
+
+    Optional<VerificationTokenEntity> findByTypeAndUser(
+        EVerificationTokenType type,
+        UserEntity user
+    );
 }

@@ -31,7 +31,7 @@ public class Beans {
         return new ObjectMapper();
     }
 
-    @Bean(name = "verificationTokensTextEncryptor")
+    @Bean
     protected TextEncryptor verificationTokensTextEncryptor() {
         return Encryptors.text(
             this.verificationTokensSecurityKey,

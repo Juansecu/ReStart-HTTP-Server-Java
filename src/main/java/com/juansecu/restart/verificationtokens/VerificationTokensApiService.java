@@ -8,8 +8,6 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 
@@ -19,16 +17,25 @@ import com.juansecu.restart.verificationtokens.enums.EVerificationTokenType;
 import com.juansecu.restart.verificationtokens.models.entities.VerificationTokenEntity;
 import com.juansecu.restart.verificationtokens.repositories.IVerificationTokensRepository;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class VerificationTokensApiService {
     private static final Logger CONSOLE_LOGGER = LoggerFactory.getLogger(VerificationTokensApiService.class);
 
-    @Autowired
-    @Qualifier("verificationTokensTextEncryptor")
-    private TextEncryptor verificationTokensTextEncryptor;
-
     private final IVerificationTokensRepository verificationTokensRepository;
+    private final TextEncryptor verificationTokensTextEncryptor;
+
+    public void deleteVerificationToken(
+        final VerificationTokenEntity verificationToken
+    ) {
+        VerificationTokensApiService.CONSOLE_LOGGER.info(
+            "Deleting {} for user {}...",
+            verificationToken.getType(),
+            verificationToken.getUserId()
+        );
+
+        this.verificationTokensRepository.delete(verificationToken);
+    }
 
     public VerificationTokenEntity generateVerificationToken(
         final UserEntity user,
@@ -100,6 +107,22 @@ public class VerificationTokensApiService {
     public String getEncryptedToken(final String decryptedToken) {
         return this.verificationTokensTextEncryptor.encrypt(
             decryptedToken
+        );
+    }
+
+    public Optional<VerificationTokenEntity> getVerificationToken(
+        final EVerificationTokenType verificationTokenType,
+        final UserEntity user
+    ) {
+        VerificationTokensApiService.CONSOLE_LOGGER.info(
+            "Getting {} for user {}...",
+            verificationTokenType,
+            user.getUsername()
+        );
+
+        return this.verificationTokensRepository.findByTypeAndUser(
+            verificationTokenType,
+            user
         );
     }
 
