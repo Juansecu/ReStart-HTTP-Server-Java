@@ -50,6 +50,7 @@ public class EmailService {
                     from.trim() +
                     ">"
             );
+            mimeMessage.setHeader("Content-Type", "text/plain");
             mimeMessage.setRecipients(Message.RecipientType.TO, to);
             mimeMessage.setSubject(subject);
             mimeMessage.setText(message);

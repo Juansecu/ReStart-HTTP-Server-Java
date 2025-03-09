@@ -16,13 +16,13 @@ import com.juansecu.restart.auth.models.dtos.requests.ResendVerificationEmailReq
 import com.juansecu.restart.auth.models.dtos.responses.RegisterResDto;
 import com.juansecu.restart.auth.models.dtos.responses.ResendVerificationEmailResDto;
 
+@RequestMapping("/api/auth")
+@RequiredArgsConstructor
+@RestController
 @Tag(
     description = "Authentication operations",
     name = "Auth"
 )
-@RequestMapping("/api/auth")
-@RequiredArgsConstructor
-@RestController
 public class AuthApiController {
     private final AuthenticationApiService authenticationApiService;
 

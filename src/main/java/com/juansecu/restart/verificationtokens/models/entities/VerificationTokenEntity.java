@@ -55,10 +55,7 @@ public class VerificationTokenEntity {
         referencedColumnName = "User_id",
         updatable = false
     )
-    @ManyToOne(
-        cascade = CascadeType.ALL,
-        fetch = FetchType.LAZY
-    )
+    @ManyToOne(fetch = FetchType.LAZY)
     private UserEntity user;
 
     public VerificationTokenEntity(

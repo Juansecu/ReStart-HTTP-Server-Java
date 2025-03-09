@@ -40,6 +40,11 @@ button {
     background-color: var(--dexlabs-color);
 }
 
+.button--secondary:disabled {
+    cursor: not-allowed;
+    background-color: var(--dexlabs-dark-color);
+}
+
 .button--secondary:hover {
     background-color: var(--dexlabs-dark-color);
 }

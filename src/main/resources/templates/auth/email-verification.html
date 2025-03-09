@@ -30,7 +30,7 @@
         </header>
 
         <main>
-            <section id="alertContainer" class="alert-container">
+            <section class="alert-container">
                 <div
                     role="alert"
                     th:if="${isAlreadyUsedToken}"
@@ -60,6 +60,7 @@
                     role="alert"
                     th:unless="${isAlreadyUsedToken}"
                     th:class="${isSuccessful ? 'alert alert--success' : 'alert alert--error'}"
+                    id="alert"
                 >
                     <section>
                         <svg
@@ -84,6 +85,7 @@
 
                         <svg
                             th:unless="${isSuccessful}"
+                            id="alertIcon"
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 16 16"
                             class="alert__icon"
@@ -99,11 +101,13 @@
                     <section>
                         <h2
                             th:text="${isSuccessful ? #messages.msg('email.verification.confirmation-alert.success.title') : #messages.msg('email.verification.confirmation-alert.error.title')}"
+                            id="alertTitle"
                         ></h2>
 
                         <span
                             th:if="${!isSuccessful && hasTokenExpired}"
                             th:text="#{verification-token.expired}"
+                            id="alertMessage"
                         ></span>
 
                         <span
@@ -113,12 +117,15 @@
                     </section>
                 </div>
 
-                <button
-                    th:if="${!isSuccessful && hasTokenExpired}"
-                    th:text="#{email.verification.confirmation-alert.error.resend}"
-                    onclick="resendVerificationEmail()"
-                    class="button button--secondary"
-                ></button>
+                <section th:if="${!isSuccessful && hasTokenExpired}">
+                    <input type="hidden" th:value="${userId} ?: 0" id="userId" />
+
+                    <button
+                        th:text="#{email.verification.confirmation-alert.error.resend}"
+                        id="resendVerificationEmailButton"
+                        class="button button--secondary"
+                    ></button>
+                </section>
             </section>
         </main>
 

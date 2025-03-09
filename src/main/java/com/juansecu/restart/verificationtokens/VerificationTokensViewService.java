@@ -6,14 +6,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 
 import com.juansecu.restart.auth.AuthenticationApiService;
 import com.juansecu.restart.auth.AuthenticationConstants;
-import com.juansecu.restart.auth.enums.ERole;
 import com.juansecu.restart.shared.utils.TimeUtil;
+import com.juansecu.restart.users.UsersConstants;
+import com.juansecu.restart.users.models.entities.UserEntity;
 import com.juansecu.restart.verificationtokens.enums.EVerificationTokenType;
 import com.juansecu.restart.verificationtokens.models.entities.VerificationTokenEntity;
 import com.juansecu.restart.verificationtokens.repositories.IVerificationTokensRepository;
@@ -54,6 +54,9 @@ public class VerificationTokensViewService {
             return AuthenticationConstants.EMAIL_VERIFICATION_TEMPLATE;
         }
 
+        final UserEntity user = (UserEntity) request.getAttribute(
+            UsersConstants.USER_REQUEST_ATTRIBUTE
+        );
         final VerificationTokenEntity verificationToken = (VerificationTokenEntity) request.getAttribute(
             VerificationTokensConstants.VERIFICATION_TOKEN_REQUEST_ATTRIBUTE
         );
@@ -62,9 +65,7 @@ public class VerificationTokensViewService {
             verificationTokenType == EVerificationTokenType.EMAIL_VERIFICATION_TOKEN &&
             (
                 verificationToken.getUsesCount() > VerificationTokensConstants.EMAIL_VERIFICATION_TOKEN_MAXIMUM_USES ||
-                verificationToken.getUser().getAuthorities().contains(
-                    new SimpleGrantedAuthority(ERole.USER.getRole())
-                )
+                user.isVerified()
             )
         ) {
             model.addAttribute(
@@ -98,6 +99,11 @@ public class VerificationTokensViewService {
             );
 
             model.addAttribute(
+                UsersConstants.USER_ID_VIEW_ATTRIBUTE,
+                user.getUserId()
+
+            );
+            model.addAttribute(
                 VerificationTokensConstants.HAS_TOKEN_EXPIRED_VIEW_ATTRIBUTE,
                 true
             );
@@ -125,7 +131,7 @@ public class VerificationTokensViewService {
         switch (verificationTokenType) {
             case EMAIL_VERIFICATION_TOKEN -> {
                 return this.verifyEmailVerificationToken(
-                    verificationToken,
+                    user,
                     model
                 );
             }
@@ -151,12 +157,10 @@ public class VerificationTokensViewService {
     }
 
     private String verifyEmailVerificationToken(
-        final VerificationTokenEntity verificationToken,
+        final UserEntity user,
         final Model model
     ) {
-        this.authenticationApiService.setUserAsVerified(
-            verificationToken.getUser()
-        );
+        this.authenticationApiService.setUserAsVerified(user);
 
         model.addAttribute(
             VerificationTokensConstants.IS_ALREADY_USED_TOKEN_VIEW_ATTRIBUTE,

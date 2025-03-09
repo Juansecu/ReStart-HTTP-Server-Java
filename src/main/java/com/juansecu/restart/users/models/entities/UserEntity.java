@@ -17,6 +17,7 @@ import com.juansecu.restart.auth.enums.ERole;
 import com.juansecu.restart.auth.models.entities.PermissionEntity;
 import com.juansecu.restart.auth.models.entities.RoleEntity;
 import com.juansecu.restart.shared.generators.NumericIdGenerator;
+import com.juansecu.restart.verificationtokens.models.entities.VerificationTokenEntity;
 
 @Entity(name = "Users")
 @Getter
@@ -94,6 +95,12 @@ public class UserEntity implements UserDetails {
         fetch = FetchType.EAGER
     )
     private List<RoleEntity> roles;
+    @OneToMany(
+        cascade = CascadeType.ALL,
+        fetch = FetchType.LAZY,
+        mappedBy = "user"
+    )
+    private List<VerificationTokenEntity> verificationTokens;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
