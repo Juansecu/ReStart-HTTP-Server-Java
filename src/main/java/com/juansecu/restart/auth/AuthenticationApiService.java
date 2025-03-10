@@ -42,7 +42,6 @@ public class AuthenticationApiService {
     @Value("${authentication.minimum-user-age}")
     private int minimumUserAge;
 
-
     private final ApplicationEventPublisher applicationEventPublisher;
     private final PasswordEncoder passwordEncoder;
     private final RedisKeyValueTemplate redisTemplate;

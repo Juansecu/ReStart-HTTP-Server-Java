@@ -74,7 +74,7 @@
     background-color: var(--alert-container-background-color);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 48rem) {
     .alert > section:first-child {
         width: 35%;
     }
@@ -88,7 +88,7 @@
     }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 64rem) {
     .alert > section:first-child {
         width: 25%;
     }
