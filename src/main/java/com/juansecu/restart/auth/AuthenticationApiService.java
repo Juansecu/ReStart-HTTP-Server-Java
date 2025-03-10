@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.redis.core.PartialUpdate;
 import org.springframework.data.redis.core.RedisKeyValueTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +33,6 @@ import com.juansecu.restart.auth.repositories.IRolesRepository;
 import com.juansecu.restart.users.models.dtos.responses.UserIdResDto;
 import com.juansecu.restart.users.models.entities.UserEntity;
 import com.juansecu.restart.users.repositories.IUsersRepository;
-import com.juansecu.restart.verificationtokens.VerificationTokensApiService;
-import com.juansecu.restart.verificationtokens.enums.EVerificationTokenType;
-import com.juansecu.restart.verificationtokens.models.entities.VerificationTokenEntity;
 
 @RequiredArgsConstructor
 @Service
@@ -53,7 +49,6 @@ public class AuthenticationApiService {
     private final IResendVerificationEmailTrialsRepository resendVerificationEmailTrialsRepository;
     private final IRolesRepository rolesRepository;
     private final IUsersRepository usersRepository;
-    private final VerificationTokensApiService verificationTokensService;
 
     public ResponseEntity<RegisterResDto> register(final RegisterReqDto registerReqDto) {
         UserEntity newUser;
@@ -159,7 +154,6 @@ public class AuthenticationApiService {
             HttpStatus.NOT_FOUND
         );
         Optional<ResendVerificationEmailTrial> resendVerificationEmailTrial;
-        Optional<VerificationTokenEntity> verificationToken;
 
         final Calendar today = Calendar.getInstance();
         final Optional<UserEntity> user = this.usersRepository.findById(userId);
@@ -192,15 +186,6 @@ public class AuthenticationApiService {
             );
         }
 
-        verificationToken = this.verificationTokensService.getVerificationToken(
-            EVerificationTokenType.EMAIL_VERIFICATION_TOKEN,
-            user.get()
-        );
-
-        verificationToken.ifPresent(
-            this.verificationTokensService::deleteVerificationToken
-        );
-
         resendVerificationEmailTrial = this.resendVerificationEmailTrialsRepository.findById(userId);
 
         if (resendVerificationEmailTrial.isPresent())
@@ -209,19 +194,19 @@ public class AuthenticationApiService {
                 today
             );
         else {
-            this.resendVerificationEmailTrialsRepository.save(
-                new ResendVerificationEmailTrial(
-                    userId,
-                    1,
-                    new Date()
-                )
-            );
-
             userSignupDate.setTime(user.get().getRegisteredAt());
             userSignupDate.add(Calendar.MINUTE, 2);
 
-            response = today.after(userSignupDate)
-                ? new ResponseEntity<>(
+            if (today.after(userSignupDate)) {
+                this.resendVerificationEmailTrialsRepository.save(
+                    new ResendVerificationEmailTrial(
+                        userId,
+                        1,
+                        new Date()
+                    )
+                );
+
+                response = new ResponseEntity<>(
                     new ResendVerificationEmailResDto(
                         true,
                         null,
@@ -230,17 +215,17 @@ public class AuthenticationApiService {
                         null
                     ),
                     HttpStatus.CREATED
-                )
-                : new ResponseEntity<>(
-                    new ResendVerificationEmailResDto(
-                        false,
-                        EResendVerificationEmailError.TOO_MANY_ATTEMPTS,
-                        null,
-                        "You must wait 2 minutes before trying to resend the verification email",
-                        null
-                    ),
-                    HttpStatus.TOO_MANY_REQUESTS
                 );
+            } else response = new ResponseEntity<>(
+                new ResendVerificationEmailResDto(
+                    false,
+                    EResendVerificationEmailError.TOO_MANY_ATTEMPTS,
+                    null,
+                    "You must wait 2 minutes before trying to resend the verification email",
+                    null
+                ),
+                HttpStatus.TOO_MANY_REQUESTS
+            );
         }
 
         if (response.getStatusCode().is2xxSuccessful())
@@ -295,33 +280,38 @@ public class AuthenticationApiService {
         final ResendVerificationEmailTrial trial,
         final Calendar today
     ) {
-        boolean hasBeen24HoursSinceLastTrial;
-
         final Calendar lastTrialDate = Calendar.getInstance();
-        final PartialUpdate<ResendVerificationEmailTrial> partialUpdate = new PartialUpdate<>(
-            trial.getUserId(),
-            ResendVerificationEmailTrial.class
-        );
         final ResendVerificationEmailResDto response = new ResendVerificationEmailResDto(
             false,
             EResendVerificationEmailError.TOO_MANY_ATTEMPTS,
             null,
-            "You have reached the maximum amount of trials to resend the verification email",
+            "You have reached the maximum amount of trials to resend the verification email. Please try it again later",
             null
         );
 
+        Optional.ofNullable(trial.getUpdatedAt()).ifPresentOrElse(
+            lastTrialDate::setTime,
+            () -> lastTrialDate.setTime(trial.getCreatedAt())
+        );
 
-        lastTrialDate.setTime(trial.getUpdatedAt());
-        lastTrialDate.add(Calendar.DAY_OF_MONTH, 1);
+        if (trial.getTrialsAmount() == 1) {
+            lastTrialDate.add(Calendar.MINUTE, 2);
 
-        hasBeen24HoursSinceLastTrial = today.after(lastTrialDate);
+            if (!today.after(lastTrialDate)) {
+                response.setMessage(
+                    "You must wait 2 minutes before trying to resend the verification email"
+                );
 
-        if (hasBeen24HoursSinceLastTrial) {
-            partialUpdate.set("trialsAmount", 1);
-            partialUpdate.set("updatedAt", new Date());
-            partialUpdate.refreshTtl(true);
+                return new ResponseEntity<>(
+                    response,
+                    HttpStatus.TOO_MANY_REQUESTS
+                );
+            }
 
-            this.redisTemplate.update(partialUpdate);
+            trial.setTrialsAmount(2);
+            trial.setUpdatedAt(new Date());
+
+            this.resendVerificationEmailTrialsRepository.save(trial);
 
             response.setSuccessful(true);
             response.setErrorCode(null);
@@ -331,11 +321,9 @@ public class AuthenticationApiService {
 
             return new ResponseEntity<>(
                 response,
-                HttpStatus.OK
+                HttpStatus.CREATED
             );
-        }
-
-        if (trial.getTrialsAmount() == 1) {
+        } else if (trial.getTrialsAmount() == 2) {
             lastTrialDate.add(Calendar.MINUTE, 10);
 
             if (!today.after(lastTrialDate)) {
@@ -349,6 +337,11 @@ public class AuthenticationApiService {
                 );
             }
 
+            trial.setTrialsAmount(3);
+            trial.setUpdatedAt(new Date());
+
+            this.resendVerificationEmailTrialsRepository.save(trial);
+
             response.setSuccessful(true);
             response.setErrorCode(null);
             response.setMessage(
@@ -359,15 +352,10 @@ public class AuthenticationApiService {
                 response,
                 HttpStatus.CREATED
             );
-        } else if (trial.getTrialsAmount() == 2)
+        } else
             return new ResponseEntity<>(
                 response,
                 HttpStatus.TOO_MANY_REQUESTS
             );
-
-        return new ResponseEntity<>(
-            response,
-            HttpStatus.CREATED
-        );
     }
 }

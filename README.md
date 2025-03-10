@@ -6,6 +6,7 @@ Hyper-Text Transfer Protocol (HTTP) server for FusionFall: ReStart.
 
 - **Java -** Version 17
 - **Database engine -** PostgreSQL 17.x
+- **Redis -** Version 7.x
 - **Environment variables:**
 
     | Variable                                         | Type    | Description                                                             | Required | Default                  | Example                      |

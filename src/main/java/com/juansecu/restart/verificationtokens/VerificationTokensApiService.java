@@ -25,18 +25,6 @@ public class VerificationTokensApiService {
     private final IVerificationTokensRepository verificationTokensRepository;
     private final TextEncryptor verificationTokensTextEncryptor;
 
-    public void deleteVerificationToken(
-        final VerificationTokenEntity verificationToken
-    ) {
-        VerificationTokensApiService.CONSOLE_LOGGER.info(
-            "Deleting {} for user {}...",
-            verificationToken.getType(),
-            verificationToken.getUserId()
-        );
-
-        this.verificationTokensRepository.delete(verificationToken);
-    }
-
     public VerificationTokenEntity generateVerificationToken(
         final UserEntity user,
         final EVerificationTokenType verificationTokenType,
@@ -52,6 +40,14 @@ public class VerificationTokensApiService {
         VerificationTokenEntity verificationToken;
 
         final UUID token = UUID.randomUUID();
+        final Optional<VerificationTokenEntity> existentVerificationToken = this.getVerificationToken(
+            verificationTokenType,
+            user
+        );
+
+        existentVerificationToken.ifPresent(
+            this::deleteVerificationToken
+        );
 
         tokenExpirationDateTime = switch (verificationTokenType) {
             case DELETE_ACCOUNT_TOKEN -> LocalDateTime
@@ -111,22 +107,6 @@ public class VerificationTokensApiService {
     }
 
     public Optional<VerificationTokenEntity> getVerificationToken(
-        final EVerificationTokenType verificationTokenType,
-        final UserEntity user
-    ) {
-        VerificationTokensApiService.CONSOLE_LOGGER.info(
-            "Getting {} for user {}...",
-            verificationTokenType,
-            user.getUsername()
-        );
-
-        return this.verificationTokensRepository.findByTypeAndUser(
-            verificationTokenType,
-            user
-        );
-    }
-
-    public Optional<VerificationTokenEntity> getVerificationToken(
         final String encryptedToken,
         final EVerificationTokenType verificationTokenType,
         final UserEntity user
@@ -155,6 +135,34 @@ public class VerificationTokensApiService {
 
         return this.verificationTokensRepository.findByTokenAndTypeAndUser(
             decryptedToken,
+            verificationTokenType,
+            user
+        );
+    }
+
+    private void deleteVerificationToken(
+        final VerificationTokenEntity verificationToken
+    ) {
+        VerificationTokensApiService.CONSOLE_LOGGER.info(
+            "Deleting {} for user {}...",
+            verificationToken.getType(),
+            verificationToken.getUserId()
+        );
+
+        this.verificationTokensRepository.delete(verificationToken);
+    }
+
+    private Optional<VerificationTokenEntity> getVerificationToken(
+        final EVerificationTokenType verificationTokenType,
+        final UserEntity user
+    ) {
+        VerificationTokensApiService.CONSOLE_LOGGER.info(
+            "Getting {} for user {}...",
+            verificationTokenType,
+            user.getUsername()
+        );
+
+        return this.verificationTokensRepository.findByTypeAndUser(
             verificationTokenType,
             user
         );
