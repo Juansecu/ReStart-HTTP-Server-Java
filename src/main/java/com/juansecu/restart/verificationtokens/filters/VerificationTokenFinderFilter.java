@@ -16,7 +16,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.juansecu.restart.auth.AuthenticationConstants;
 import com.juansecu.restart.auth.models.AuthenticationDetails;
 import com.juansecu.restart.auth.utils.JwtAuthenticationValidationUtil;
 import com.juansecu.restart.users.UsersApiService;
@@ -51,14 +50,7 @@ public class VerificationTokenFinderFilter extends OncePerRequestFilter {
         );
         final String encryptedToken = request.getParameter("token");
         final boolean isUserAuthenticated = authenticationDetails.isUserAuthenticated();
-        final int userId = Integer.parseInt(
-            request.getParameter("userId")
-        );
-
-        request.setAttribute(
-            AuthenticationConstants.IS_USER_AUTHENTICATED_REQUEST_ATTRIBUTE,
-            isUserAuthenticated
-        );
+        final int userId = Integer.parseInt(request.getParameter("userId"));
 
         if (isUserAuthenticated) {
             if (userId != authenticationDetails.user().getUserId()) {
