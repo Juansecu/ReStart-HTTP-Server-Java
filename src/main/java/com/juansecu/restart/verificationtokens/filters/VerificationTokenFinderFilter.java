@@ -42,6 +42,7 @@ public class VerificationTokenFinderFilter extends OncePerRequestFilter {
         @NonNull final FilterChain filterChain
     ) throws IOException, ServletException {
         Optional<UserEntity> user;
+        int userId;
         Optional<VerificationTokenEntity> verificationToken;
         EVerificationTokenType verificationTokenType;
 
@@ -50,7 +51,28 @@ public class VerificationTokenFinderFilter extends OncePerRequestFilter {
         );
         final String encryptedToken = request.getParameter("token");
         final boolean isUserAuthenticated = authenticationDetails.isUserAuthenticated();
-        final int userId = Integer.parseInt(request.getParameter("userId"));
+        final String tokenType = request.getParameter("type");
+        final String userIdParameter = request.getParameter("userId");
+
+        if (encryptedToken == null || tokenType == null || userIdParameter == null) {
+            VerificationTokenFinderFilter.CONSOLE_LOGGER.error(
+                "Missing required request parameters"
+            );
+
+            return;
+        } else if (!userIdParameter.matches("\\d+")) {
+            VerificationTokenFinderFilter.CONSOLE_LOGGER.error(
+                "The user ID is not a valid integer"
+            );
+
+            return;
+        }
+
+        userId = Integer.parseInt(userIdParameter);
+
+        VerificationTokenFinderFilter.CONSOLE_LOGGER.info(
+            "Verifying if user is authenticated and if the user ID matches with the token..."
+        );
 
         if (isUserAuthenticated) {
             if (userId != authenticationDetails.user().getUserId()) {
@@ -58,45 +80,25 @@ public class VerificationTokenFinderFilter extends OncePerRequestFilter {
                     "The user ID does not match with the authenticated user account"
                 );
 
-                request.setAttribute(
-                    VerificationTokensConstants.IS_VALID_TOKEN_REQUEST_ATTRIBUTE,
-                    true
-                );
-
                 return;
             }
 
             user = Optional.of(authenticationDetails.user());
-        } else
-            user = this.usersApiService.findById(
-                userId
-            );
+        } else user = this.usersApiService.findById(userId);
 
         if (user.isEmpty()) {
             VerificationTokenFinderFilter.CONSOLE_LOGGER.error(
                 "The user does not exist"
             );
 
-            request.setAttribute(
-                VerificationTokensConstants.IS_VALID_TOKEN_REQUEST_ATTRIBUTE,
-                false
-            );
-
             return;
         }
 
         try {
-            verificationTokenType = EVerificationTokenType.valueOf(
-                request.getParameter("type")
-            );
+            verificationTokenType = EVerificationTokenType.valueOf(tokenType);
         } catch (final IllegalArgumentException illegalArgumentException) {
             VerificationTokenFinderFilter.CONSOLE_LOGGER.error(
                 "The verification token type is not valid"
-            );
-
-            request.setAttribute(
-                VerificationTokensConstants.IS_VALID_TOKEN_REQUEST_ATTRIBUTE,
-                false
             );
 
             return;
@@ -111,11 +113,6 @@ public class VerificationTokenFinderFilter extends OncePerRequestFilter {
         if (verificationToken.isEmpty()) {
             VerificationTokenFinderFilter.CONSOLE_LOGGER.error(
                 "The verification token does not exist"
-            );
-
-            request.setAttribute(
-                VerificationTokensConstants.IS_VALID_TOKEN_REQUEST_ATTRIBUTE,
-                false
             );
 
             return;
