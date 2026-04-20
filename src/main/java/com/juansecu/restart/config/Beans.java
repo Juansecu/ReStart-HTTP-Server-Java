@@ -1,14 +1,11 @@
 package com.juansecu.restart.config;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 public class Beans {
@@ -19,14 +16,12 @@ public class Beans {
     @Value("${verification-tokens.security-key}")
     private String verificationTokensSecurityKey;
 
-    @Bean(name = "nonAuthenticationRequiredEndpoints")
-    protected AntPathRequestMatcher[] nonAuthenticationRequiredEndpoints() {
-        return Arrays
-            .stream(this.nonAuthenticationRequiredEndpoints)
-            .map(AntPathRequestMatcher::new)
-            .toArray(AntPathRequestMatcher[]::new);
+    @Bean
+    protected String[] nonAuthenticationRequiredEndpoints() {
+        return this.nonAuthenticationRequiredEndpoints;
     }
 
+    @Bean
     protected ObjectMapper objectMapper() {
         return new ObjectMapper();
     }

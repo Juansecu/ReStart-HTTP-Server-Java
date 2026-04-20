@@ -1,15 +1,13 @@
 package com.juansecu.restart.config;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authorization.AuthorizationManagerFactory;
+import org.springframework.security.authorization.DefaultAuthorizationManagerFactory;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,7 +20,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.juansecu.restart.auth.enums.ERole;
 import com.juansecu.restart.auth.filters.JwtAuthenticationFilter;
@@ -38,9 +35,7 @@ public class SecurityConfig {
     @Value("${server.headers.permissions-policy}")
     private String permissionsPolicy;
 
-    @Autowired
-    @Qualifier("nonAuthenticationRequiredEndpoints")
-    private final AntPathRequestMatcher[] nonAuthenticationRequiredEndpoints;
+    private final String[] nonAuthenticationRequiredEndpoints;
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final VerificationTokenFinderFilter verificationTokenFinderFilter;
@@ -53,12 +48,12 @@ public class SecurityConfig {
 
     // Set the role hierarchy
     @Bean
-    protected MethodSecurityExpressionHandler methodSecurityExpressionHandler(
+    protected AuthorizationManagerFactory<Object> authorizationManagerFactory(
         final RoleHierarchy roleHierarchy
     ) {
-        final DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
-        expressionHandler.setRoleHierarchy(roleHierarchy);
-        return expressionHandler;
+        final DefaultAuthorizationManagerFactory<Object> factory = new DefaultAuthorizationManagerFactory<>();
+        factory.setRoleHierarchy(roleHierarchy);
+        return factory;
     }
 
     @Bean
@@ -78,7 +73,7 @@ public class SecurityConfig {
     @Bean
     protected SecurityFilterChain securityFilterChain(
         final HttpSecurity httpSecurity
-    ) throws Exception {
+    ) {
         httpSecurity
             .addFilterBefore(
                 this.jwtAuthenticationFilter,
@@ -88,8 +83,8 @@ public class SecurityConfig {
                 this.verificationTokenFinderFilter,
                 UsernamePasswordAuthenticationFilter.class
             )
-            .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
-                authorizationManagerRequestMatcherRegistry
+            .authorizeHttpRequests(auth ->
+                auth
                     .requestMatchers(
                         this.nonAuthenticationRequiredEndpoints
                     ).permitAll()
@@ -118,7 +113,7 @@ public class SecurityConfig {
                             XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK
                         )
                     )
-                    .permissionsPolicy(permissions ->
+                    .permissionsPolicyHeader(permissions ->
                         permissions.policy(this.permissionsPolicy)
                     )
             );

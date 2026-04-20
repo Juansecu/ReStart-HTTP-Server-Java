@@ -12,13 +12,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,11 +30,8 @@ import com.juansecu.restart.users.models.entities.UserEntity;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger CONSOLE_LOGGER = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-    @Autowired
-    @Qualifier("nonAuthenticationRequiredEndpoints")
-    private final AntPathRequestMatcher[] nonAuthenticationRequiredEndpoints;
-
     private final JwtAuthenticationValidationUtil jwtAuthenticationValidationUtil;
+    private final String[] nonAuthenticationRequiredEndpoints;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -106,10 +100,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(
         @NonNull final HttpServletRequest request
     ) {
-        return Arrays
-            .stream(this.nonAuthenticationRequiredEndpoints)
-            .anyMatch(
-                (AntPathRequestMatcher matcher) -> matcher.matches(request)
-            );
+        final String path = request.getRequestURI()
+            .substring(request.getContextPath().length());
+
+        return Arrays.asList(this.nonAuthenticationRequiredEndpoints).contains(path);
     }
 }

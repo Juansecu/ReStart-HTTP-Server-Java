@@ -1,7 +1,6 @@
 package com.juansecu.restart.verificationtokens.filters;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Optional;
 
 import jakarta.servlet.FilterChain;
@@ -12,7 +11,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -25,11 +24,16 @@ import com.juansecu.restart.verificationtokens.VerificationTokensApiService;
 import com.juansecu.restart.verificationtokens.VerificationTokensConstants;
 import com.juansecu.restart.verificationtokens.enums.EVerificationTokenType;
 import com.juansecu.restart.verificationtokens.models.entities.VerificationTokenEntity;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 @Component
 @RequiredArgsConstructor
 public class VerificationTokenFinderFilter extends OncePerRequestFilter {
     private static final Logger CONSOLE_LOGGER = LoggerFactory.getLogger(VerificationTokenFinderFilter.class);
+    private static final PathPatternParser PATH_PATTERN_PARSER = new PathPatternParser();
+    private static final PathPattern VERIFICATION_PATTERN =
+        PATH_PATTERN_PARSER.parse("/verification-tokens/verify");
 
     private final JwtAuthenticationValidationUtil jwtAuthenticationValidationUtil;
     private final UsersApiService usersApiService;
@@ -135,14 +139,10 @@ public class VerificationTokenFinderFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(
         @NonNull final HttpServletRequest request
     ) {
-        final AntPathRequestMatcher[] excludedMatchers = {
-            new AntPathRequestMatcher("/verification-tokens/verify")
-        };
+        final PathContainer pathContainer = PathContainer.parsePath(
+            request.getRequestURI()
+        );
 
-        return Arrays
-            .stream(excludedMatchers)
-            .noneMatch(
-                (AntPathRequestMatcher matcher) -> matcher.matches(request)
-            );
+        return !VERIFICATION_PATTERN.matches(pathContainer);
     }
 }
