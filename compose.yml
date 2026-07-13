@@ -14,6 +14,12 @@ services:
       - ./postgres/var/lib/postgresql/data:/var/lib/postgresql/data
     networks:
       - restart_http-server-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   restart-http-server:
     image: restart_http-server
@@ -34,7 +40,8 @@ services:
     ports:
       - 8080:8080
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - restart_http-server-network
 
