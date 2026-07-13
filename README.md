@@ -168,7 +168,7 @@ $ docker login ghcr.io
 
 For running the application with Docker Compose,
 you can use the
-[Docker Compose file](https://github.com/Juansecu/ReStart-HTTP-Server/blob/main/docker-compose.yml)
+[Docker Compose file](compose.yml)
 provided in this repository for development and production,
 but for production, you will also need to
 remove the `build` property from the `restart-http-server` service,
